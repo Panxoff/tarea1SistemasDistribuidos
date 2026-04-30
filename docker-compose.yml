@@ -1,0 +1,33 @@
+version: "3.9"
+ 
+
+services:
+ 
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --maxmemory 200mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+ 
+  app:
+    build: .
+    container_name: sistema_cache
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./Dataset T1:/app/Dataset T1:ro
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    command: python main.py --n 30 --limpiar
